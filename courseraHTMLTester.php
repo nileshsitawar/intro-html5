@@ -454,4 +454,4 @@ try {
     error_log("***Did not find footer tag!");
 }
 
-echo ("\n\nYour grade is  " . $grade . "\n\n");
+echo ("\nYour grade is  " . $grade . "\n\n");
