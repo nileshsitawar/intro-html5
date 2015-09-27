@@ -145,7 +145,7 @@ else{
                 }
             }   
         } catch(Exception $ex){
-            error_log("***Did not find meta tag!" . '<br>');
+            error_log("***Did not find meta tag!<br>");
         }
         print("...looking for title...");
         try {
@@ -204,7 +204,7 @@ try {
             $h1 = $node;
         }
         if (trim(strtolower($h1->nodeValue) == 'colleen van lent')) {
-            print(htmlentities('<h1> tag text not changed from example page. <br>'));
+            print(htmlentities('<h1> tag text not changed from example page. <br>') .'<br>');
         }
         else {
             print(htmlentities('<h1> tag formatted properly') . '<br>');
@@ -212,7 +212,7 @@ try {
         }
     }
     else{
-         print("...***Did NOT find h1 tag or found more than one!\n" . '<br>');
+         print("...***Did NOT find h1 tag or found more than one!\n" .'<br>');
      }
 }catch(Exception $ex){
     error_log("***Did not find h1 tag!");
@@ -223,11 +223,11 @@ try {
 try {
     $nodes = $dom->getElementsByTagName('h2');
     if ($nodes->length === 3) {
-        print(htmlentities('Found three <h2> tags') . '<br>');
+        print(htmlentities('Found three <h2> tags') .'<br>');
         $grade += 1; 
     }
     else {
-        print(htmlentities('***Found more or less than three <h2> tags') . '<br>');
+        print(htmlentities('***Found more or less than three <h2> tags') .'<br>');
     }
 }
 catch(Exception $ex) {
@@ -243,7 +243,7 @@ try {
         $grade+=1;
     }
     else{
-         print("...***Did NOT find nav tag or found more than one!\n" . '<br>');
+         print("...***Did NOT find nav tag or found more than one!\n <br>");
      }
 }catch(Exception $ex){
     error_log("***Did not find nav tag!");
@@ -258,13 +258,13 @@ try {
         $grade+=1;
     }
     else
-         print("***Did NOT find three sections tags\n" . '<br>');
+         print("***Did NOT find three sections tags\n <br>");
 }catch(Exception $ex){
     error_log("***Did not find 3 section tags!");
 }
 
 echo ($grade .' out of ' . $possgrade .'<br/><br/>');
-print("Searching for four links in the nav..." . '<br>');
+print("Searching for four links in the nav...<br>");
 $possgrade+=1; //h2 links
 
 try {
@@ -283,16 +283,16 @@ try {
         if ($count==4){
             print("Found them all!<br>");
             if (trim(strtolower($nav_links_all[6]->nodeValue)) !== 'four') {
-                print(htmlentities("\n Fourth <a> tag's text was changed") . '<br>');
+                print(htmlentities("\n Fourth <a> tag's text was changed") .'<br>');
                 $grade += 1; 
                 echo($grade . " out of ". $possgrade);
             }
             else {
-                print(htmlentities('***Fourth <a> tag text was not changed' . '<br>'));
+                print(htmlentities('***Fourth <a> tag text was not changed') .'<br>');
             }
         }
         else
-            print("\n****Did not find four links in the nav section" . '<br>');
+            print("\n****Did not find four links in the nav section <br>");
         }
 } catch(Exception $ex) {
     print("***Did not find links in the navigation");
@@ -316,32 +316,31 @@ try {
             }
         }
         if ($count == 4) {
-            print('Found four list items' . '<br>');
+            print('Found four list items<br>');
             $lcount = 0;
             foreach ($list_items as $item) {
-                // echo '<p>' . $item->nodeValue . '</p>';
                 if (trim(strtolower($item->nodeValue)) == 'apples' || trim(strtolower($item->nodeValue)) == 'pizza' ||
                     trim(strtolower($item->nodeValue)) == 'crab' || trim(strtolower($item->nodeValue)) == 'chocolate cake') {
                     $lcount += 1;
                 }
             }
             if ($lcount) {
-                print('***' . $lcount . ' list ' . ($lcount == 1 ? 'item is' : 'items are') . ' the same as the example page <br>');
+                print('***' . $lcount . ' list ' . ($lcount == 1 ? 'item is' : 'items are') . ' the same as the example page<br>');
             }
             else {
-                print('All list items formatted properly' . '<br>');
+                print('All list items formatted properly<br>');
                 $grade += 1; 
             }
         }
         else {
-            print("\n ***Found less or more than four list items" . '<br>');
+            print("\n ***Found less or more than four list items<br>");
         }
     }
     else {
-        print(htmlentities("\n ***Found more than one <ul> tag") . '<br>');
+        print(htmlentities("\n ***Found more than one <ul> tag") .'<br>');
     }
 } catch(Exception $ex) {
-    error_log(htmlentities('***Did not find a <ul> tag') . '<br>');
+    error_log(htmlentities('***Did not find a <ul> tag') .'<br>');
 }
 
     echo ($grade .' out of ' . $possgrade .'<br/><br/>');
@@ -356,11 +355,11 @@ try {
         }
         $p = $progress[2]->parentNode;
         $p = explode('(', $p->nodeValue);
-        if (substr($p[1], 3) == '67%') {
-            print(htmlentities("\n ***Value of third <progress> tag not changed") . '<br>');
+        if (substr($p[1], 0, 3) == '67%') {
+            print(htmlentities("\n ***Value of third <progress> tag not changed") .'<br>');
         }
         else {
-            print(htmlentities('<progress> tags formatted properly') . '<br>');
+            print(htmlentities('<progress> tags formatted properly') .'<br>');
             $grade += 1; 
         }
     }
@@ -381,22 +380,22 @@ try {
             }
         }
         if ($details[0]->tagName !== 'summary') {
-            print(htmlentities("\n ***Missing <summary> tag") . '<br>');
+            print(htmlentities("\n ***Missing <summary> tag") .'<br>');
         }
         if ($details[1]->tagName !== 'p') {
-            print(htmlentities("\n ***Missing <p> tag in <details>") . '<br>');
+            print(htmlentities("\n ***Missing <p> tag in <details>") .'<br>');
         }
         elseif (trim(strtolower($details[1]->nodeValue)) == 'i grew up in ashtabula ohio. i lived near
             lake erie and i really miss the sunsets over the water.') {
-            print(htmlentities('***Content of <p> tag in <details> was not changed') . '<br>');
+            print(htmlentities('***Content of <p> tag in <details> was not changed') .'<br>');
         }
         else {
-            print(htmlentities('<details> tag properly formatted.') . '<br>');
+            print(htmlentities('<details> tag properly formatted.') .'<br>');
             $grade += 1; 
         }
     }
     else {
-        print(htmlentities('***Did not find <details> tag or found more than one') . '<br>');
+        print(htmlentities('***Did not find <details> tag or found more than one') .'<br>');
     }
 } catch(Exception $ex) {
     error_log(htmlentities('Did not find <details> tag.'));
@@ -423,51 +422,51 @@ try {
                 $footer_p[] = $child;
             }
             if ($footer_p[1]->tagName == 'img') {
-                print(htmlentities('Found <img> tag in footer <p> tag') . '<br>');
+                print(htmlentities('Found <img> tag in footer <p> tag') .'<br>');
                 if ($footer_p[1]->getAttribute('src') !== 'http://www.intro-webdesign.com/images/newlogo.png') {
-                    print(htmlentities('***<img> tag  has incorrect src attribute') . '<br>');
+                    print(htmlentities('***<img> tag  has incorrect src attribute') .'<br>');
                 }
                 elseif (!$footer_p[1]->getAttribute('alt')) {
-                    print(htmlentities('<img> tag is missing alt attribute') . '<br>');
+                    print(htmlentities('<img> tag is missing alt attribute') .'<br>');
                 }
                 else {
-                    print(htmlentities('<img> tag properly formatted') . '<br>');
+                    print(htmlentities('<img> tag properly formatted') .'<br>');
                     $grade += 1; 
                 }
             }
             else {
-                print(htmlentities('***<img> tag is not first element within <p> tag of footer') . '<br>');
+                print(htmlentities('***<img> tag is not first element within <p> tag of footer') .'<br>');
             }
             if ($footer_p[2]->wholeText) {
                 $text = explode('by ', $footer_p[2]->wholeText);
                 $text = explode(' ', $text[1]);
                 if (strtolower($text[1]) == 'name') {
-                    print('***Name in footer not changed from example page' . '<br>');
+                    print('***Name in footer not changed from example page' .'<br>');
                 }
             }
             else {
                 print(htmlentities('<p> tag text missing from footer'));
             }
             if ($footer_p[3]->tagName == 'a') {
-                print(htmlentities('Found <a> tag in footer <p> tag') . '<br>');
+                print(htmlentities('Found <a> tag in footer <p> tag') .'<br>');
                 if ($footer_p[3]->getAttribute('href') !== 'http://www.intro-webdesign.com') {
-                    print(htmlentities('***Wrong href attribute for <a> tag in the <p> tag of the footer') . '<br>');
+                    print(htmlentities('***Wrong href attribute for <a> tag in the <p> tag of the footer') .'<br>');
                 }
                 else {
-                    print(htmlentities('<a> tag in <p> tag of footer properly formatted') . '<br>');
+                    print(htmlentities('<a> tag in <p> tag of footer properly formatted') .'<br>');
                     $grade += 1; 
                 }
             }
             else {
-                print(htmlentities('***No <a> tag found in <p> tag of footer') . '<br>');
+                print(htmlentities('***No <a> tag found in <p> tag of footer') .'<br>');
             }
         }
         else {
-            print(htmlentities('Missing <p> tag from footer') . '<br>');
+            print(htmlentities('Missing <p> tag from footer') .'<br>');
         }
     }
     else
-         print("***Did NOT find footer tag or found more than one!\n" . '<br>');
+         print("***Did NOT find footer tag or found more than one!\n" .'<br>');
 } catch(Exception $ex){
     error_log("***Did not find footer tag!");
 }
