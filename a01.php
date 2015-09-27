@@ -5,8 +5,10 @@ use \Tsugi\Util\LTI;
 use \Tsugi\Util\Net;
 
 require_once $CFG->dirroot."/core/blob/blob_util.php";
-
+error_reporting(0); 
 $oldgrade = $RESULT->grade;
+$grade = 0;
+$possgrade = 0;
 if ( isset($_FILES['html_01']) ) {
 
     $fdes = $_FILES['html_01'];
@@ -59,9 +61,9 @@ if ( ! isset($_SESSION['html_data']) ) return;
 $data = $_SESSION['html_data'];
 unset($_SESSION['html_data']);
 echo("<pre>\n");
-echo("Input HTML\n");
-echo(htmlentities($data));
-echo("\n");
+// echo("Input HTML\n");
+// echo(htmlentities($data));
+// echo("\n");
 
 // First validate using
 // https://github.com/validator/validator/wiki/Service:-Input:-POST-body
@@ -69,58 +71,77 @@ echo("\n");
 $validator = 'https://validator.w3.org/nu/?out=json&parser=html5';
 echo("Calling the validator $validator ... \n");
 $return = Net::doBody($validator, "POST", $data, 'Content-type: text/html; charset=utf-8');
-echo("Validator Output:\n");
-echo(htmlentities(jsonIndent($return)));
 
-if ($return.length > 0){
-echo "Your code did not validate.  Please return to the W3 validator at validator.w3.org to check your code.";
+
+$json = json_decode($return);
+$val_error=false;
+foreach($json->messages as $item)
+{
+    if($item->type == "error")
+    {
+        echo "Found error";
+        // echo("Validator Output:\n");
+        // echo(htmlentities(jsonIndent($return)));
+        $val_error=true;
+        break;
+    }
+}
+
+
+if ($val_error){
+  echo "Your code did not validate.  Please return to the W3 validator at validator.w3.org to check your code.";
+  exit;
 }
 else{
-    echo $data;
+    echo "Your code validated!<br/>";
     $dom = new DOMDocument;
     @$dom->loadHTML($data);
 
-    print("First check that major components are there.\n" . '<br>');
-
+    print("Checking for specific components.<br/>");
+    $possgrade+=2; //html + lang
     try {
       $nodes = $dom->getElementsByTagName('html');
       if ($nodes->length==1){
-        print("Found html tag!\n" . '<br>');
-        print("...making sure English language is specified!" . '<br>');
+        print("Found html tag! <br/>");
+        $grade+=1;
+
+        print("...is English language specified?");
 
         foreach ($nodes as $p) //go to each section 1 by 1 
         {
             if ($p->getAttribute('lang')==="en"){
-                print("...Found it!!\n" . '<br>');
-                $grade+=1;
+                print("...Found it!!<br>");
+                 $grade+=1;
             }
             else{
-                print("\n***Didn't find it!!\n" . '<br>');
+                print("***Didn't find it!!<br>");
             }
         }
-        $grade+=1;
      }
      else
-        print("***Did NOT find html tag!\n" . '<br>');
+        print("***Did NOT find html tag!<br>");
     }catch(Exception $ex){
-        error_log("***Did not find html tag!" . '<br>');
+        error_log("***Did not find html tag!<br>");
     }
 
+    echo ($grade .' out of ' . $possgrade .'<br/><br/>');
+    $possgrade+=3; //head + meta + title
     try {
       $nodes = $dom->getElementsByTagName('head');
       if ($nodes->length==1){
         print("Found head tag!\n");
-        print("...looking for meta charset..." . '<br>');
+        $grade+=1;
+        print("...looking for meta charset...");
         try {
             $nodes = $dom->getElementsByTagName('meta');
             foreach ($nodes as $p) //go to each section 1 by 1 
             {
                 if ($p->getAttribute('charset')!=null){
-                    print("...Found it!!\n");
+                    print("...Found it!!<br>");
                     $grade+=1;
                 }
                 else{
-                    print("\n***Didn't find it!!\n");
+                    print("\n***Didn't find it!!<br>");
                 }
             }   
         } catch(Exception $ex){
@@ -130,59 +151,64 @@ else{
         try {
             $nodes = $dom->getElementsByTagName('title');
             if ($nodes->length==1){
-                print("...Found it!!\n");
+                print("...Found it!!<br>");
                 $grade+=1;
             }
             else{
-                print("\n***Didn't find it!!\n");
+                print("\n***Didn't find it!!<br>");
             }
         }catch(Exception $ex){
-            error_log("***Did not find title tag!" . '<br>');
+            error_log("***Did not find title tag!<br>");
         }
       }
     }catch(Exception $ex){
-        error_log("***Did not find head tag!" . '<br>');
+        error_log("***Did not find head tag!<br>");
     }
   
+    echo ($grade .' out of ' . $possgrade .'<br/><br/>');
+    $possgrade+=1; //body tag
+
     try {
      $nodes = $dom->getElementsByTagName('body');
      if ($nodes->length==1){
-        print("Found body tag!\n" . '<br>');
+        print("Found body tag!<br>");
         $grade+=1;
         }
       else
-         print("***Did NOT find body tag or found more than one!\n" . '<br>');
+         print("***Did NOT find body tag or found more than one!<br>");
     }catch(Exception $ex){
         error_log("***Did not find body tag!");
     }
 
+    echo ($grade .' out of ' . $possgrade .'<br/><br/>');
+    $possgrade+=1; //header tag
 try {
     $nodes = $dom->getElementsByTagName('header');
     if ($nodes->length==1){
-        print("Found header tag!\n" . '<br>');
+        print("Found header tag!<br>");
         $grade+=1;
     }
     else{
-         print("***Did NOT find header tag or found more than one!\n" . '<br>');
+         print("***Did NOT find header tag or found more than one!<br>");
      }
 }catch(Exception $ex){
     error_log("***Did not find header tag!");
 }
 
+ echo ($grade .' out of ' . $possgrade .'<br/><br/>');
+    $possgrade+=1; //h1 tag
 try {
     $nodes = $dom->getElementsByTagName('h1');
     if ($nodes->length==1){
-        print("...Found h1 tag!\n" . '<br>');
-        $grade+=1;
         foreach ($nodes as $node) {
             $h1 = $node;
         }
         if (trim(strtolower($h1->nodeValue) == 'colleen van lent')) {
-            print(htmlentities('<h1> tag text not changed from example page') . '<br>');
+            print(htmlentities('<h1> tag text not changed from example page. <br>'));
         }
         else {
             print(htmlentities('<h1> tag formatted properly') . '<br>');
-            $grade += 1;
+            $grade += 1; 
         }
     }
     else{
@@ -192,11 +218,13 @@ try {
     error_log("***Did not find h1 tag!");
 }
 
+    echo ($grade .' out of ' . $possgrade .'<br/><br/>');
+    $possgrade+=1; //h2 tags
 try {
     $nodes = $dom->getElementsByTagName('h2');
     if ($nodes->length === 3) {
         print(htmlentities('Found three <h2> tags') . '<br>');
-        $grade += 1;
+        $grade += 1; 
     }
     else {
         print(htmlentities('***Found more or less than three <h2> tags') . '<br>');
@@ -206,10 +234,12 @@ catch(Exception $ex) {
     error_log(htmlentities('***Did not find any <h2> tags'));
 }
 
+    echo ($grade .' out of ' . $possgrade .'<br/><br/>');
+    $possgrade+=1; //h2 nav
 try {
     $nodes = $dom->getElementsByTagName('nav');
     if ($nodes->length==1){
-        print("...found nav tag!\n" . '<br>');
+        print("Found nav tag!<br>");
         $grade+=1;
     }
     else{
@@ -219,10 +249,12 @@ try {
     error_log("***Did not find nav tag!");
 }
 
+    echo ($grade .' out of ' . $possgrade .'<br/><br/>');
+    $possgrade+=1; //h2 sections
 try {
     $nodes = $dom->getElementsByTagName('section');
     if ($nodes->length==3){
-        print("Found three section tags!\n" . '<br>');
+        print("Found three section tags!<br>");
         $grade+=1;
     }
     else
@@ -231,7 +263,9 @@ try {
     error_log("***Did not find 3 section tags!");
 }
 
+echo ($grade .' out of ' . $possgrade .'<br/><br/>');
 print("Searching for four links in the nav..." . '<br>');
+$possgrade+=1; //h2 links
 
 try {
     $nav = $dom->getElementsByTagName('nav');
@@ -243,17 +277,18 @@ try {
             $nav_links_all[] = $link;
             if ($link->tagName === "a") {
                 $count+=1;
-                print("Found ". $count . '<br>');
+                print("Found ". $count . '....');
             }
         }
         if ($count==4){
-            print("....Found them!\n" . '<br>');
+            print("Found them all!<br>");
             if (trim(strtolower($nav_links_all[6]->nodeValue)) !== 'four') {
                 print(htmlentities("\n Fourth <a> tag's text was changed") . '<br>');
-                $grade += 1;
+                $grade += 1; 
+                echo($grade . " out of ". $possgrade);
             }
             else {
-                print(htmlentities("\n***Fourth <a> tag's text was not changed") . '<br>');
+                print(htmlentities('***Fourth <a> tag text was not changed' . '<br>'));
             }
         }
         else
@@ -263,6 +298,8 @@ try {
     print("***Did not find links in the navigation");
     $navlinks = "";
 }
+    echo ($grade .' out of ' . $possgrade .'<br/><br/>');
+    $possgrade+=1; //ul tag + li tags
 
 try {
     $nodes = $dom->getElementsByTagName('ul');
@@ -282,7 +319,7 @@ try {
             print('Found four list items' . '<br>');
             $lcount = 0;
             foreach ($list_items as $item) {
-                echo '<p>' . $item->nodeValue . '</p>';
+                // echo '<p>' . $item->nodeValue . '</p>';
                 if (trim(strtolower($item->nodeValue)) == 'apples' || trim(strtolower($item->nodeValue)) == 'pizza' ||
                     trim(strtolower($item->nodeValue)) == 'crab' || trim(strtolower($item->nodeValue)) == 'chocolate cake') {
                     $lcount += 1;
@@ -293,7 +330,7 @@ try {
             }
             else {
                 print('All list items formatted properly' . '<br>');
-                $grade += 1;
+                $grade += 1; 
             }
         }
         else {
@@ -307,10 +344,12 @@ try {
     error_log(htmlentities('***Did not find a <ul> tag') . '<br>');
 }
 
+    echo ($grade .' out of ' . $possgrade .'<br/><br/>');
+    $possgrade+=1; //progress tags
 try {
     $nodes = $dom->getElementsByTagName('progress');
     if ($nodes->length == 3) {
-        print("\n Found three progress tags" . '<br>');
+        print("Found three progress tags" . '<br>');
         $progress = array();
         foreach($nodes as $node) {
             $progress[] = $node;
@@ -322,13 +361,15 @@ try {
         }
         else {
             print(htmlentities('<progress> tags formatted properly') . '<br>');
-            $grade += 1;
+            $grade += 1; 
         }
     }
 } catch(Exception $ex) {
     error_log(htmlentities('***Did not find <progress> tags'));
 }
 
+ echo ($grade .' out of ' . $possgrade .'<br/><br/>');
+    $possgrade+=1; //details + summary tag
 try {
     $nodes = $dom->getElementsByTagName('details');
     if ($nodes->length == 1) {
@@ -351,7 +392,7 @@ try {
         }
         else {
             print(htmlentities('<details> tag properly formatted.') . '<br>');
-            $grade += 1;
+            $grade += 1; 
         }
     }
     else {
@@ -361,13 +402,13 @@ try {
     error_log(htmlentities('Did not find <details> tag.'));
 }
 
+ echo ($grade .' out of ' . $possgrade .'<br/><br/>');
+    $possgrade+=3; //footer, link tags
 try {
     $nodes = $dom->getElementsByTagName('footer');
     if ($nodes->length==1){
         print("Found footer tag!\n" . '<br>');
-        $grade += 1;
-        echo ("\n\nYour grade is  " . $grade);
-
+        $grade += 1; 
         $footer = array();
         foreach ($nodes as $node) {
             $items = $node->childNodes;
@@ -391,7 +432,7 @@ try {
                 }
                 else {
                     print(htmlentities('<img> tag properly formatted') . '<br>');
-                    $grade += 1;
+                    $grade += 1; 
                 }
             }
             else {
@@ -414,7 +455,7 @@ try {
                 }
                 else {
                     print(htmlentities('<a> tag in <p> tag of footer properly formatted') . '<br>');
-                    $grade += 1;
+                    $grade += 1; 
                 }
             }
             else {
@@ -431,10 +472,12 @@ try {
     error_log("***Did not find footer tag!");
 }
 
-echo ("\n\nYour grade is  " . $grade . "\n\n");
+echo ($grade .' out of ' . $possgrade .'<br/><br/>');
+echo ("\n\nYour score is  " . $grade/$possgrade . "\n\n");
+
 }
 
-    $gradetosend = $grade;
+    $gradetosend = $grade/$possgrade;
     $scorestr = "Your answer is correct, score saved.";
    
     if ( $oldgrade > $gradetosend ) {
@@ -457,9 +500,8 @@ echo ("\n\nYour grade is  " . $grade . "\n\n");
         echo("</pre>\n");
         die();
     }
-
+exit;
     // Redirect to ourself
     header('Location: '.addSession('index.php'));
     return;
-}
 
