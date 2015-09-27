@@ -18,7 +18,7 @@ if ( SettingsForm::handleSettingsPost() ) {
 // All the assignments we support
 $assignments = array(
     'a01.php' => 'HTML Validate',
-    'courseraHTML.php' => 'Autograde HTML Final Project'
+    'courseraHTMLTester.php' => 'Autograde HTML Final Project'
 );
 
 $oldsettings = Settings::linkGetAll();
