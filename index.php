@@ -34,6 +34,15 @@ if ( (count($_POST) > 0 || count($_FILES) > 0 ) && $assn && isset($assignments[$
 
 // View
 $OUTPUT->header();
+echo "<style> 
+span{color:red;
+font-size:16px;}
+.correct{
+color:green;
+font-size:16px;
+font-weight:bold;
+};
+</style>";
 $OUTPUT->bodyStart();
 
 // Settings button and dialog
@@ -55,8 +64,38 @@ $OUTPUT->flashMessages();
 
 $OUTPUT->welcomeUserCourse();
 
+$ALL_GOOD = false;
+
+function my_error_handler($errno , $errstr, $errfile, $errline , $trace = false)
+{
+    global $OUTPUT, $ALL_GOOD;
+    error_out("The autograder experienced some kind of error - test ended.");
+    $message = $errfile."@".$errline." ".$errstr;
+    error_log($message);
+    if ( $trace ) error_log($trace);
+    $detail = 'Caught exception: '.$message."\n".$trace."\n";
+    $OUTPUT->togglePre("Internal error detail.",$detail);
+    $OUTPUT->footer();
+    $ALL_GOOD = true;
+}
+
+function fatalHandler() {
+    global $ALL_GOOD, $OUTPUT;
+    if ( $ALL_GOOD ) return;
+    $error = error_get_last();
+    error_out("Fatal error handler triggered");
+    if($error) {
+        my_error_handler($error["type"], $error["message"], $error["file"], $error["line"]);
+    } else {
+        $OUTPUT->footer();
+    }
+    exit();
+}
+register_shutdown_function("fatalHandler");
+
+// Assume try / catch is in the script
 if ( $assn && isset($assignments[$assn]) ) {
-    require($assn);
+    include($assn);
 } else {
     if ( $USER->instructor ) {
         echo("<p>Please use settings to select an assignment for this tool.</p>\n");
@@ -64,7 +103,9 @@ if ( $assn && isset($assignments[$assn]) ) {
         echo("<p>This tool needs to be configured - please see your instructor.</p>\n");
     }
 }
-        
+
+$ALL_GOOD = true;
 
 $OUTPUT->footer();
+
 

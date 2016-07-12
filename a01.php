@@ -37,15 +37,6 @@ if ( isset($_FILES['html_01']) ) {
     header( 'Location: '.addSession('index.php') ) ;
     return;
 }
-echo "<style> 
-span{color:red;
-font-size:16px;}
-.correct{
-color:green;
-font-size:16px;
-font-weight:bold;
-};
-</style>";
 
 if ( $LINK->grade > 0 ) {
     echo('<p class="alert alert-info">Your current grade on this assignment is: '.($LINK->grade*100.0).'%</p>'."\n");
